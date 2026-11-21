@@ -13,10 +13,14 @@ description: Vercel 文档站发布、main 分支触发条件和生产部署边�
 - 连接 `weiran-tech/wuli3` 仓库，项目根目录为 `wuli3-docs`。
 - 使用 Node.js 24、`npm ci` 和 `npm run docs:build`。
 - 静态产物目录为 `build/docs/`，站点根路径为 `/`。
-- 仅 `main` 更新后自动部署；PR 和其他分支不生成预览部署。
+- GitHub Actions 仅在上游 `weiran-tech/wuli3` 的 `main` 更新文档或发布流程后部署，也可从该分支手动运行。
+- 仓库 Actions Secrets 中配置 `VERCEL_TOKEN`，工作流固定 Vercel 团队和项目 ID。
+- `vercel.json` 关闭 Vercel Git 自动部署；PR、其他分支以及 fork 的 `main` 均不自动部署。
 - `vercel.json` 开启 `cleanUrls`，章节链接不带 `.html`。
 
 GitHub Pages 工作流已移除，文档发布不再依赖 Pages 权限、环境或项目子路径。
+
+发布流程先拉取 Vercel 生产配置，在 Actions 中构建，再通过 `vercel deploy --prebuilt --prod` 上传静态产物。fork PR 不执行含发布凭据的步骤，也不需要为 PR 授权 Vercel 部署。
 
 ## 静态产物检查
 

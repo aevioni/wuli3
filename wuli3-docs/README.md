@@ -27,7 +27,11 @@ npm run docs:preview
 
 文档站发布到 https://wuli3.wulicode.com，由 Vercel 连接 `weiran-tech/wuli3` 仓库，项目根目录为 `wuli3-docs`，使用 Node.js 24。
 
-只有 `main` 更新后触发生产部署；创建或更新 PR、推送其他分支均不生成预览部署。项目设置关闭预览部署，`vercel.json` 同时声明仅允许 `main` 自动部署。
+`.github/workflows/docs-vercel.yml` 仅在上游 `weiran-tech/wuli3` 的 `main` 上收到文档或发布流程变更时部署，也可从 `main` 手动运行。创建或更新 PR、推送其他分支或 fork 的 `main` 均不触发部署。
+
+仓库 Actions Secrets 需要配置拥有 Vercel 项目发布权限的 `VERCEL_TOKEN`。工作流固定团队和项目 ID，拉取生产配置后使用 Vercel CLI 构建并上传产物；Token 不应写入代码或日志。
+
+`vercel.json` 完全关闭 Vercel Git 自动部署，由 GitHub Actions 作为唯一发布入口，避免 fork 的 `main` 命中分支白名单并在 PR 阶段出现部署授权提示。
 
 Vercel 使用 `npm ci` 安装依赖、`npm run docs:build` 构建，发布 `build/docs/`。站点使用根路径 `/`，`cleanUrls` 支持直接访问不带 `.html` 的章节地址。GitHub Pages 工作流已移除。
 
