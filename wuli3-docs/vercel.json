@@ -6,9 +6,6 @@
   "outputDirectory": "build/docs",
   "cleanUrls": true,
   "git": {
-    "deploymentEnabled": {
-      "**": false,
-      "main": true
-    }
+    "deploymentEnabled": false
   }
 }

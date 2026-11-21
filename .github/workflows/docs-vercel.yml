@@ -1,0 +1,65 @@
+name: Deploy documentation to Vercel
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wuli3-docs/**'
+      - '.github/workflows/docs-vercel.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-vercel-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # fork 即使使用 main 分支，也不能运行上游站点的发布流程。
+    if: github.repository == 'weiran-tech/wuli3' && github.ref == 'refs/heads/main'
+    name: Deploy production documentation
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_LSdZsjteJnNAhze3cUocRmsO
+      VERCEL_PROJECT_ID: prj_LhH6uMJJAJRIGAyWRZ7Y7cz5I0hL
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: wuli3-docs/package-lock.json
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@66.6.0
+
+      - name: Pull production settings
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo '::error::请在仓库 Actions Secrets 中配置 VERCEL_TOKEN'
+            exit 1
+          fi
+          vercel pull --yes --environment=production --scope imvkmarks-projects
+
+      - name: Build production site
+        run: vercel build --prod
+
+      - name: Deploy production site
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt --prod --yes --scope imvkmarks-projects
+
+      - name: Verify published pages
+        run: |
+          curl --fail --silent --show-error --retry 3 --max-time 30 https://wuli3.wulicode.com/ --output /dev/null
+          curl --fail --silent --show-error --retry 3 --max-time 30 https://wuli3.wulicode.com/getting-started/quick-start --output /dev/null
